@@ -1,1 +1,1 @@
-# MainRu
+﻿# Разработка приложений на платформе Microsoft .NET Framework и не только.
