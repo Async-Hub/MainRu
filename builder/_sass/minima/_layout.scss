@@ -191,6 +191,7 @@
  * Page content
  */
 .page-content {
+  text-align: justify;
   padding: $spacing-unit 0;
   flex: 1 0 auto;
 }
@@ -219,6 +220,7 @@
 
 .post-link {
   display: block;
+  text-align: left;
   @include relative-font-size(1.5);
 }
 
@@ -233,6 +235,7 @@
 
 .post-title,
 .post-content h1 {
+  text-align: left;
   @include relative-font-size(2.625);
   letter-spacing: -1px;
   line-height: 1;

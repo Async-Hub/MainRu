@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Microsoft OWIN и конвейер обработки запросов ASP.NET. Часть вторая, спецификация OWIN и его реализация компанией Microsoft. Проект Katana, общее описание. | Программирование, облако и распределённые системы</title>
+<meta name="generator" content="Jekyll v3.8.6" />
+<meta property="og:title" content="Microsoft OWIN и конвейер обработки запросов ASP.NET. Часть вторая, спецификация OWIN и его реализация компанией Microsoft. Проект Katana, общее описание." />
+<meta name="author" content="AsyncHub" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="OWIN – открытый интерфейс веб-сервера для .NET (Open Web Server Interface for .NET). Или говоря по другому – это спецификация определяющая абстакцию посредством которой взаимодействуют веб-сервер и веб-приложение. Более подробное описание спецификации можно найти на сайте owin.org, а если более конкретно, то тут. Чтобы легче было себе представить, нужно взглянуть на рисунок приведённый ниже." />
+<meta property="og:description" content="OWIN – открытый интерфейс веб-сервера для .NET (Open Web Server Interface for .NET). Или говоря по другому – это спецификация определяющая абстакцию посредством которой взаимодействуют веб-сервер и веб-приложение. Более подробное описание спецификации можно найти на сайте owin.org, а если более конкретно, то тут. Чтобы легче было себе представить, нужно взглянуть на рисунок приведённый ниже." />
+<link rel="canonical" href="/2014/12/23/microsoft-owin-and-aspnet-pipline-part-2.html" />
+<meta property="og:url" content="/2014/12/23/microsoft-owin-and-aspnet-pipline-part-2.html" />
+<meta property="og:site_name" content="Программирование, облако и распределённые системы" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2014-12-23T17:19:22+04:00" />
+<script type="application/ld+json">
+{"url":"/2014/12/23/microsoft-owin-and-aspnet-pipline-part-2.html","author":{"@type":"Person","name":"AsyncHub"},"description":"OWIN – открытый интерфейс веб-сервера для .NET (Open Web Server Interface for .NET). Или говоря по другому – это спецификация определяющая абстакцию посредством которой взаимодействуют веб-сервер и веб-приложение. Более подробное описание спецификации можно найти на сайте owin.org, а если более конкретно, то тут. Чтобы легче было себе представить, нужно взглянуть на рисунок приведённый ниже.","headline":"Microsoft OWIN и конвейер обработки запросов ASP.NET. Часть вторая, спецификация OWIN и его реализация компанией Microsoft. Проект Katana, общее описание.","dateModified":"2014-12-23T17:19:22+04:00","datePublished":"2014-12-23T17:19:22+04:00","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"/2014/12/23/microsoft-owin-and-aspnet-pipline-part-2.html"},"@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="/feed.xml" title="Программирование, облако и распределённые системы" /></head>
+<body><header class="site-header">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Программирование, облако и распределённые системы</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger">
+            <a href="http://www.msdr.ru">Сайт MSDR.RU</a>&nbsp;&nbsp;&nbsp;&nbsp;<a class="page-link" href="/about/">О ресурсе</a><a class="page-link" href="/content/">Содержимое</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Microsoft OWIN и конвейер обработки запросов ASP.NET. Часть вторая, спецификация OWIN и его реализация компанией Microsoft. Проект Katana, общее описание.</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2014-12-23T17:19:22+04:00" itemprop="datePublished">Dec 23, 2014
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>OWIN – открытый интерфейс веб-сервера для .NET (Open Web Server Interface for .NET). Или говоря по другому – это спецификация определяющая абстакцию посредством которой взаимодействуют веб-сервер и веб-приложение. Более подробное описание спецификации можно найти на сайте <a href="http://owin.org">owin.org</a>, а если более конкретно, то <a href="http://http://owin.org/spec/spec/owin-1.0.0.html">тут</a>. Чтобы легче было себе представить, нужно взглянуть на рисунок приведённый ниже.</p>
+
+<p><img src="/assets/posts/2014-12-23-microsoft-owin-and-aspnet-pipline-part-2/2376.A50I1.jpg" alt="Image 1" /></p>
+
+<p>Правая диаграмма показывает общую схему структуры приложения, которое использует спецификацию OWIN для организации взаимодействия между компонентами всей инфраструктуры. Левая – схему структуры веб-приложений в Windows без использования этой спецификации, то есть то, что было раньше (есть и сейчас и будет в будущем). Если применить спецификацию OWIN  к связке IIS/ASP.NET, то получится примерно следующее.</p>
+
+<p><img src="/assets/posts/2014-12-23-microsoft-owin-and-aspnet-pipline-part-2/5367.A50I2.jpg" alt="Image 2" /></p>
+
+<p>Замечу сразу, что если быть более точным, то ни правая диаграмма первого рисунка и ни данная, в абсолютной точности не выражают схему организации структуры. Все дело в том, что нельзя просто так взять и отделить части схемы на независимые куски. Просто, на мой взгляд, для быстрого восприятия материала, они являются наиболее оптимальными для иллюстрации общей картины. Ну а дальше всё постепенно прояснится. Вернувшись к теме сразу возникает вопрос: а зачем лишний уровень абстракции и в без того <a href="/2014-12-23-microsoft-owin-and-aspnet-pipline-part-1">перегруженный конвейер</a> IIS/ASP.NET ? Отвечу коротко – почти незачем, просто это одна из реализаций организации работы приложения по спецификации OWIN с использованием IIS/ASP.NET. Остальные выводы будут сделаны в конце статьи. В самом начале статьи упоминалось о взаимодействии сервера и приложения, на практике, такое взаимодействие сводится к использованию функций с сигнатурой одного единственного делегата, так называемого <strong><em>делегата приложения</em></strong>. Который имеет следующий вид:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">using</span> <span class="nn">AppFunc</span> <span class="p">=</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">IDictionary</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">,</span> <span class="kt">object</span><span class="p">&gt;,</span> <span class="n">Task</span><span class="p">&gt;;</span>
+</code></pre></div></div>
+
+<p>Входной параметр имеющий тип <strong>IDictionary&lt;string, object&gt;</strong> и называемый – <em>словарь окружения</em>, содержит все данные (переменные сервера, данные запроса и т.п.). Он не может иметь значение <strong>null</strong>, а так же быть пустым. Кроме того, должен содержать <a href="http://owin.org/spec/spec/owin-1.0.0.html#_3.2._Environment">некоторые ключи</a> определённые спецификацией. Выходной параметр имеет тип <strong>Task</strong> – инкапсулирует некоторую выполняемую задачу. На основе данного делегата строятся компонеты приложения и объединяются в цепочку, тем самым формируется конвейер обработки запросов OWIN, куда передаётся запрос на обработку. Из типа возвращаемого делегатом уже видно, что он будет работать в асинхронном режиме. Пока, всё описанное выше – это только теория. Microsft OWIN или проект под названием <strong>Katana</strong> является реализацией спецификации OWIN компанией Microsoft. Исходный код проекта полность открытый и находится на CodePlex по <a href="https://katanaproject.codeplex.com/">следующему адресу</a>. На момент написания статьи текущая версия 3.0.0 Alpha, а RTM версия – 2.1.0. Именно последняя будет описана и использоваться в дальнейшем. Ниже представлена визуальная схема архитектуры проекта Katana, <a href="http://owin.org/spec/spec/owin-1.0.0.html">согласно спецификации</a> OWIN.</p>
+
+<p><img src="/assets/posts/2014-12-23-microsoft-owin-and-aspnet-pipline-part-2/2626.A50I3.jpg" alt="Image 3" /></p>
+
+<p>Если скачать и открыть проект, то можно увидеть, что примерно так всё и выглядит.</p>
+
+<p><img src="/assets/posts/2014-12-23-microsoft-owin-and-aspnet-pipline-part-2/1452.A50I4.jpg" alt="Image 4" /></p>
+
+<p>Ниже представлены схематические изображения архитектуры веб-приложений использующих Katana и работающих по спецификации OWIN.</p>
+
+<p><img src="/assets/posts/2014-12-23-microsoft-owin-and-aspnet-pipline-part-2/2248.A50I5.jpg" alt="Image 5" /></p>
+
+<p>И так, что же означает абреввиатура OWIN показанная на диаграммах как промежуточный слой. Это основное связующее звено в приложении, того самого промежуточного слоя, представленное в виде единственного интерфейса <strong>IAppBuilder</strong>.</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">namespace</span> <span class="nn">Owin</span>
+<span class="p">{</span>
+    <span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+    <span class="k">using</span> <span class="nn">System.Collections.Generic</span><span class="p">;</span>
+ 
+    <span class="k">public</span> <span class="k">interface</span> <span class="nc">IAppBuilder</span>
+    <span class="p">{</span>
+        <span class="kt">object</span> <span class="nf">Build</span><span class="p">(</span><span class="n">Type</span> <span class="n">returnType</span><span class="p">);</span>
+        <span class="n">IAppBuilder</span> <span class="nf">New</span><span class="p">();</span>
+        <span class="n">IAppBuilder</span> <span class="nf">Use</span><span class="p">(</span><span class="kt">object</span> <span class="n">middleware</span><span class="p">,</span> <span class="k">params</span> <span class="kt">object</span><span class="p">[]</span> <span class="n">args</span><span class="p">);</span>
+ 
+        <span class="n">IDictionary</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">,</span> <span class="kt">object</span><span class="p">&gt;</span> <span class="n">Properties</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Интерфейс не является частью спецификации. Тут есть очень тонкий момент: вся инфраструктура работает по спецификации OWIN, а данная абреввиатура на диаграммах, наглядно показывает просто конкретную реализацию промежуточного слоя. Теперь, чтобы лучше понять материал я покажу как создать очень простое веб-приложение, которое будет работать по спецификации OWIN. Для начала нам нужен хост, процесс в Windows в котором будет работать наше приложение. Для этого создадим простое консольное приложение в Visual Studio 2013.</p>
+
+<p><img src="/assets/posts/2014-12-23-microsoft-owin-and-aspnet-pipline-part-2/6886.A50I6.jpg" alt="Image 6" /></p>
+
+<p>Естественно, реализация спецификации OWIN задача ресурсоёмкая, поэтому и есть проект Katana. Воспользуемся некоторыми готовыми компонентами Katana, установив их через NuGet.</p>
+
+<p><img src="/assets/posts/2014-12-23-microsoft-owin-and-aspnet-pipline-part-2/8540.A50I7.jpg" alt="Image 7" /></p>
+
+<p>Как видно из рисунка выше, было установлено четыре сборки. Сборка OWIN, содержит один едниственный интерфейс – IAppBuilder, который был описан выше. Microsoft.Owin – содержит множество вспомагательных типов, которые облегчают создание разных  компонетов Owin. Например: OwinRequest, OwinResponse, OwinContext и т.д. Сборка Microsoft.Owin.Hosting содержит типы необходимые для хостинга и запуска приложения. Ну а сборка Microsoft.Owin.Host.HttpListener содержит дефолтовый сервер OwinHttpListener проекта Katana. Это по сути обёртка вокруг стандартного System.Net.HttpListener. Для конфигурации приложения при запуске, Katana ищет класс Startup. В качестве шаблонного элемента он присутсвует в Visual Studio 2013. Добавим его. Более подробно об алгоритме поиска класса Startup написано <a href="http://www.asp.net/aspnet/overview/owin-and-katana/owin-startup-class-detection">тут</a>.</p>
+
+<p><img src="/assets/posts/2014-12-23-microsoft-owin-and-aspnet-pipline-part-2/3750.A50I8.jpg" alt="Image8" /></p>
+
+<p>Осталось добавить код, запускающий сервер:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">Microsoft.Owin.Hosting</span><span class="p">;</span>
+ 
+<span class="k">namespace</span> <span class="nn">SimpleOwinApplication</span>
+<span class="p">{</span>
+    <span class="k">class</span> <span class="nc">Program</span>
+    <span class="p">{</span>
+        <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">(</span><span class="kt">string</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">const</span> <span class="kt">string</span> <span class="n">uri</span> <span class="p">=</span> <span class="s">"http://localhost:8088/"</span><span class="p">;</span>
+ 
+            <span class="k">using</span><span class="p">(</span><span class="n">WebApp</span><span class="p">.</span><span class="n">Start</span><span class="p">&lt;</span><span class="n">Startup</span><span class="p">&gt;(</span><span class="n">uri</span><span class="p">))</span>
+            <span class="p">{</span>
+                <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"Server started"</span><span class="p">);</span>
+                <span class="n">Console</span><span class="p">.</span><span class="nf">ReadKey</span><span class="p">();</span>
+                <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"Server stoped"</span><span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>и код конфигурации.</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">using</span> <span class="nn">Owin</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">Microsoft.Owin</span><span class="p">;</span>
+ 
+<span class="p">[</span><span class="n">assembly</span><span class="p">:</span> <span class="nf">OwinStartup</span><span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="n">SimpleOwinApplication</span><span class="p">.</span><span class="n">Startup</span><span class="p">))]</span>
+ 
+<span class="k">namespace</span> <span class="nn">SimpleOwinApplication</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">class</span> <span class="nc">Startup</span>
+    <span class="p">{</span>
+        <span class="k">public</span> <span class="k">void</span> <span class="nf">Configuration</span><span class="p">(</span><span class="n">IAppBuilder</span> <span class="n">app</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">app</span><span class="p">.</span><span class="nf">Run</span><span class="p">(</span><span class="n">context</span> <span class="p">=&gt;</span>
+            <span class="p">{</span>
+                <span class="n">context</span><span class="p">.</span><span class="n">Response</span><span class="p">.</span><span class="n">ContentType</span> <span class="p">=</span> <span class="s">"text/html"</span><span class="p">;</span>
+                <span class="k">return</span> <span class="n">context</span><span class="p">.</span><span class="n">Response</span><span class="p">.</span><span class="nf">WriteAsync</span><span class="p">(</span><span class="n">htmlText</span><span class="p">);</span>
+            <span class="p">});</span>
+        <span class="p">}</span>
+ 
+        <span class="k">private</span> <span class="k">const</span> <span class="kt">string</span> <span class="n">htmlText</span> <span class="p">=</span> <span class="s">"&lt;html&gt;"</span> <span class="p">+</span>
+                                          <span class="s">"&lt;head&gt;"</span> <span class="p">+</span>
+                                              <span class="s">"&lt;title&gt;&lt;/title&gt;"</span> <span class="p">+</span>
+                                          <span class="s">"&lt;/head&gt;"</span> <span class="p">+</span>
+                                          <span class="s">"&lt;body&gt;"</span> <span class="p">+</span>
+                                              <span class="s">"&lt;h1&gt;Simple Owin Application&lt;h1&gt;"</span> <span class="p">+</span>
+                                          <span class="s">"&lt;/body&gt;"</span> <span class="p">+</span>
+                                        <span class="s">"&lt;/html&gt;"</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Ничего особенного тут не происходит. Просто на все запросы к хосту, сервет отвечает куском кода HTML. В следующей части все детали конвейера OWIN и его компоненты будут расмотрены более детально.</p>
+
+<p><img src="/assets/posts/2014-12-23-microsoft-owin-and-aspnet-pipline-part-2/4520.A50I9.jpg" alt="Image9" /></p>
+
+<p>Запускаем приложение, и видим что всё работает. Здесь находится <a href="http://www.msdr.ru/files/SimpleOwinApplication.zip">ссылка на проект</a>. Тут уже назревает вопрос: зачем нам всё это, плохо ли было без этого? Конечно нет, но если посмотреть с другой стороны, то инфраструктура веб-приложения построенная по спецификации OWIN при помощи управляемого кода даёт нам полную свободу действий и гибкость, еcли мы реализуем её без использования существующей. То есть, если мы не используем IIS/ASP.NET. Лично я не вижу смысла использовать спецификацию OWIN в приложениях IIS/ASP.NET, об этом будет ещё написано в следующих статьях. Почему не стоит? Да потому, что конвейер IIS/ASP.NET и <a href="/2014/12/23/microsoft-owin-and-aspnet-pipline-part-1.html">без того перегружен</a>. Незачем вводить ещё один дополнительный слой абстракции. И к тому же технология ASP.NET достаточно зрелая и используя накопленные возможности и опыт можно решить очень широкий круг задач, что мы и делали до сих пор и будем делать. Вывод – спецификация OWIN позволяет пересмотреть  архитектуру веб-инфраструктуры не принося ничего нового в уже существующую, но позволяющая построить совершенно новую и полностью управляемую архитектуру инфраструктуры.</p>
+
+  </div><a class="u-url" href="/2014/12/23/microsoft-owin-and-aspnet-pipline-part-2.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col one-half">
+      <h2 class="footer-heading">Программирование, облако и распределённые системы</h2>
+        <ul class="contact-list">
+          <li class="p-name">AsyncHub</li><li><a class="u-email" href="mailto:admin@asynchub.org">admin@asynchub.org</a></li></ul>
+      </div>
+
+      <div class="footer-col one-half">
+        <p>Разработка приложений на платформе Microsoft .NET Framework и не только.</p>
+      </div>
+
+      <div class="social-links"><ul class="social-media-list"><li><a rel="me" href="https://github.com/Async-Hub" title="Async-Hub"><svg class="svg-icon grey"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg></a></li><li><a rel="me" href="https://twitter.com/AsyncHub" title="AsyncHub"><svg class="svg-icon grey"><use xlink:href="/assets/minima-social-icons.svg#twitter"></use></svg></a></li><li><a href="/feed.xml" title="rss"><svg class="svg-icon grey"><use xlink:href="/assets/minima-social-icons.svg#rss"></use></svg></a></li></ul>
+</div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>
