@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Microsoft OWIN и конвейер обработки запросов ASP.NET. Часть первая, общее описание конвейера IIS и ASP.NET до появления спецификации OWIN. | Программирование, облако и распределённые системы</title>
+<meta name="generator" content="Jekyll v3.8.6" />
+<meta property="og:title" content="Microsoft OWIN и конвейер обработки запросов ASP.NET. Часть первая, общее описание конвейера IIS и ASP.NET до появления спецификации OWIN." />
+<meta name="author" content="AsyncHub" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Достаточно давно я хотел написать цикл статей про конвейер обработки запросов IIS и ASP.NET, но по причине отсутствия свободного времени никак не получалось. Ограничился лишь данными статьями. И вот такая возможность появилась. C выходом Visual Studio 2013 появилось много новшеств в ASP.NET. В частности таких как: единый ASP.NET и спецификация OWIN. О том какие преимущества даёт нам первая, было коротко написано в данной статье. Ну а обо всём остальном я расскажу далее. В этой статье я покажу весь конвейер IIS и ASP.NET, чтобы в других частях статей (про Microsoft OWIN) можно было бы использовать данную схему." />
+<meta property="og:description" content="Достаточно давно я хотел написать цикл статей про конвейер обработки запросов IIS и ASP.NET, но по причине отсутствия свободного времени никак не получалось. Ограничился лишь данными статьями. И вот такая возможность появилась. C выходом Visual Studio 2013 появилось много новшеств в ASP.NET. В частности таких как: единый ASP.NET и спецификация OWIN. О том какие преимущества даёт нам первая, было коротко написано в данной статье. Ну а обо всём остальном я расскажу далее. В этой статье я покажу весь конвейер IIS и ASP.NET, чтобы в других частях статей (про Microsoft OWIN) можно было бы использовать данную схему." />
+<link rel="canonical" href="/2014/12/23/microsoft-owin-and-aspnet-pipline-part-1.html" />
+<meta property="og:url" content="/2014/12/23/microsoft-owin-and-aspnet-pipline-part-1.html" />
+<meta property="og:site_name" content="Программирование, облако и распределённые системы" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2014-12-23T17:19:22+04:00" />
+<script type="application/ld+json">
+{"url":"/2014/12/23/microsoft-owin-and-aspnet-pipline-part-1.html","author":{"@type":"Person","name":"AsyncHub"},"description":"Достаточно давно я хотел написать цикл статей про конвейер обработки запросов IIS и ASP.NET, но по причине отсутствия свободного времени никак не получалось. Ограничился лишь данными статьями. И вот такая возможность появилась. C выходом Visual Studio 2013 появилось много новшеств в ASP.NET. В частности таких как: единый ASP.NET и спецификация OWIN. О том какие преимущества даёт нам первая, было коротко написано в данной статье. Ну а обо всём остальном я расскажу далее. В этой статье я покажу весь конвейер IIS и ASP.NET, чтобы в других частях статей (про Microsoft OWIN) можно было бы использовать данную схему.","headline":"Microsoft OWIN и конвейер обработки запросов ASP.NET. Часть первая, общее описание конвейера IIS и ASP.NET до появления спецификации OWIN.","dateModified":"2014-12-23T17:19:22+04:00","datePublished":"2014-12-23T17:19:22+04:00","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"/2014/12/23/microsoft-owin-and-aspnet-pipline-part-1.html"},"@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="/feed.xml" title="Программирование, облако и распределённые системы" /></head>
+<body><header class="site-header">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Программирование, облако и распределённые системы</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/about/">О ресурсе</a><a class="page-link" href="/content/">Содержимое</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Microsoft OWIN и конвейер обработки запросов ASP.NET. Часть первая, общее описание конвейера IIS и ASP.NET до появления спецификации OWIN.</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2014-12-23T17:19:22+04:00" itemprop="datePublished">Dec 23, 2014
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>Достаточно давно я хотел написать цикл статей про конвейер обработки запросов IIS и ASP.NET, но по причине отсутствия свободного времени никак не получалось. Ограничился лишь <a href="www.msdr.ru/9/">данными статьями</a>. И вот такая возможность появилась. C выходом Visual Studio 2013 появилось много новшеств в ASP.NET. В частности таких как: единый ASP.NET и спецификация OWIN. О том какие преимущества даёт нам первая, было коротко написано в <a href="www.msdr.ru/44/">данной статье</a>. Ну а обо всём остальном я расскажу далее. В этой статье я покажу весь конвейер IIS и ASP.NET, чтобы в других частях статей (про Microsoft OWIN) можно было бы использовать данную схему.</p>
+
+<p><img src="/assets/posts/2014-12-23-microsoft-owin-and-aspnet-pipline-part-1/IIS-and-ASP.NET-piplinev1.0.jpg" alt="IIS-and-ASP.NET-pipline" /></p>
+
+<p>Когда я сам только начинал свой путь разработчика сильно нуждался в подобных наглядных схемах. Думаю, теперь это будет полезно другим. В следующих частях уже будет описана спецификация OWIN и всё что с этим связано в IIS и ASP.NET. <a href="/assets/posts/2014-12-23-microsoft-owin-and-aspnet-pipline-part-1/IIS and ASP.NET pipline.pdf">Вот ссылка на pdf файл</a> высокого качества.</p>
+
+  </div><a class="u-url" href="/2014/12/23/microsoft-owin-and-aspnet-pipline-part-1.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col one-half">
+      <h2 class="footer-heading">Программирование, облако и распределённые системы</h2>
+        <ul class="contact-list">
+          <li class="p-name">AsyncHub</li><li><a class="u-email" href="mailto:admin@asynchub.org">admin@asynchub.org</a></li></ul>
+      </div>
+
+      <div class="footer-col one-half">
+        <p>Разработка приложений на платформе Microsoft .NET Framework и не только.</p>
+      </div>
+
+      <div class="social-links"><ul class="social-media-list"><li><a rel="me" href="https://github.com/Async-Hub" title="Async-Hub"><svg class="svg-icon grey"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg></a></li><li><a rel="me" href="https://twitter.com/AsyncHub" title="AsyncHub"><svg class="svg-icon grey"><use xlink:href="/assets/minima-social-icons.svg#twitter"></use></svg></a></li><li><a href="/feed.xml" title="rss"><svg class="svg-icon grey"><use xlink:href="/assets/minima-social-icons.svg#rss"></use></svg></a></li></ul>
+</div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>
